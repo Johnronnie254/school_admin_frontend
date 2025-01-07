@@ -9,7 +9,7 @@ function Teachers() {
 
   useEffect(() => {
     // Fetch teachers from the API
-    fetch('###') // Replace with actual API endpoint
+    fetch('http://localhost:8000/api/teachers/') // Updated API endpoint
       .then((response) => response.json())
       .then((data) => setTeachers(data))
       .catch((error) => console.error('Error fetching teachers:', error));
@@ -22,7 +22,7 @@ function Teachers() {
 
   const handleDelete = (id) => {
     // Call API to delete teacher
-    fetch(`###/teachers/${id}`, { method: 'DELETE' }) // Replace with actual API
+    fetch(`http://localhost:8000/api/teachers/${id}/`, { method: 'DELETE' }) // Updated API endpoint
       .then(() => {
         setTeachers(teachers.filter((teacher) => teacher.id !== id));
         setShowAlert(true);
@@ -34,7 +34,9 @@ function Teachers() {
   const handleSave = () => {
     // Save logic for add/edit teacher to API
     const method = currentTeacher ? 'PUT' : 'POST';
-    const url = currentTeacher ? `###/teachers/${currentTeacher.id}` : '###/teachers'; // Replace with actual API
+    const url = currentTeacher
+      ? `http://localhost:8000/api/teachers/${currentTeacher.id}/` // Updated API endpoint
+      : 'http://localhost:8000/api/teachers/'; // Updated API endpoint
     fetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
@@ -58,10 +60,10 @@ function Teachers() {
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch('###/teachers/upload', {
+    fetch('http://localhost:8000/api/teachers/upload_teachers/', { // Updated API endpoint
       method: 'POST',
       body: formData,
-    }) // Replace with actual API endpoint
+    })
       .then((response) => response.json())
       .then((data) => setTeachers(data))
       .catch((error) => console.error('File upload error:', error));

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {  Table, Button, Modal, Form, Nav, NavDropdown, Container, Row, Col } from 'react-bootstrap';
+import { Table, Button, Modal, Form, Nav, NavDropdown, Container, Row, Col } from 'react-bootstrap';
 
 function Students() {
   const [students, setStudents] = useState([]);
@@ -12,7 +12,7 @@ function Students() {
   useEffect(() => {
     if (selectedGrade) {
       // Fetch students data for the selected grade
-      fetch(`API_URL/students?grade=${selectedGrade}`) // Replace with actual API URL
+      fetch(`http://localhost:8000/api/students/?grade=${selectedGrade}`) // Updated API URL
         .then((response) => response.json())
         .then((data) => setStudents(data))
         .catch((error) => console.error('Error fetching students:', error));
@@ -29,7 +29,7 @@ function Students() {
     formData.append('file', file);
     formData.append('grade', selectedGrade);
 
-    fetch('API_URL/upload', { // Replace with actual API URL
+    fetch('http://localhost:8000/api/students/upload_students/', { // Updated API URL
       method: 'POST',
       body: formData,
     })
@@ -42,7 +42,7 @@ function Students() {
   };
 
   const handleCreateStudent = () => {
-    fetch('API_URL/students', { // Replace with actual API URL
+    fetch('http://localhost:8000/api/students/', { // Updated API URL
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newStudent),
@@ -56,7 +56,7 @@ function Students() {
   };
 
   const handleDeleteStudent = (id) => {
-    fetch(`API_URL/students/${id}`, { // Replace with actual API URL
+    fetch(`http://localhost:8000/api/students/${id}/`, { // Updated API URL
       method: 'DELETE',
     })
       .then(() => {
@@ -100,9 +100,9 @@ function Students() {
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>Grade</th>
                     <th>Guardian</th>
                     <th>Contact</th>
+                    <th>Grade</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -110,20 +110,12 @@ function Students() {
                   {students.map((student) => (
                     <tr key={student.id}>
                       <td>{student.name}</td>
-                      <td>{student.grade}</td>
                       <td>{student.guardian}</td>
                       <td>{student.contact}</td>
+                      <td>{student.grade}</td>
                       <td>
                         <Button
-                          variant="warning"
-                          size="sm"
-                          onClick={() => console.log('Edit student', student.id)}
-                        >
-                          Edit
-                        </Button>{' '}
-                        <Button
                           variant="danger"
-                          size="sm"
                           onClick={() => handleDeleteStudent(student.id)}
                         >
                           Delete
@@ -144,50 +136,37 @@ function Students() {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group className="mb-3">
+            <Form.Group controlId="name">
               <Form.Label>Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter student name"
                 value={newStudent.name}
                 onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
               />
             </Form.Group>
-
-            <Form.Group className="mb-3">
+            <Form.Group controlId="guardian">
               <Form.Label>Guardian</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter guardian name"
                 value={newStudent.guardian}
                 onChange={(e) => setNewStudent({ ...newStudent, guardian: e.target.value })}
               />
             </Form.Group>
-
-            <Form.Group className="mb-3">
+            <Form.Group controlId="contact">
               <Form.Label>Contact</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter contact information"
                 value={newStudent.contact}
                 onChange={(e) => setNewStudent({ ...newStudent, contact: e.target.value })}
               />
             </Form.Group>
-
-            <Form.Group className="mb-3">
+            <Form.Group controlId="grade">
               <Form.Label>Grade</Form.Label>
               <Form.Control
-                as="select"
+                type="text"
                 value={newStudent.grade}
                 onChange={(e) => setNewStudent({ ...newStudent, grade: e.target.value })}
-              >
-                <option value="">Select Grade</option>
-                {grades.map((grade) => (
-                  <option key={grade} value={grade}>
-                    Grade {grade}
-                  </option>
-                ))}
-              </Form.Control>
+              />
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -196,7 +175,7 @@ function Students() {
             Close
           </Button>
           <Button variant="primary" onClick={handleCreateStudent}>
-            Save Changes
+            Add Student
           </Button>
         </Modal.Footer>
       </Modal>
