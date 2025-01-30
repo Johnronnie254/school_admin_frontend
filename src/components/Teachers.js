@@ -37,10 +37,19 @@ function Teachers() {
     const url = currentTeacher
       ? `http://localhost:8000/api/teachers/${currentTeacher.id}/` // Updated API endpoint
       : 'http://localhost:8000/api/teachers/'; // Updated API endpoint
+
+    const teacherToSave = {
+      name: currentTeacher?.name,
+      email: currentTeacher?.email,
+      phone_number: currentTeacher?.phone_number, // Corrected to match model
+      class_assigned: currentTeacher?.class_assigned, // Corrected to match model
+      subjects: currentTeacher?.subjects, // Assuming backend expects an array
+    };
+
     fetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentTeacher),
+      body: JSON.stringify(teacherToSave), // Send updated object to backend
     })
       .then((response) => response.json())
       .then((data) => {
@@ -67,6 +76,12 @@ function Teachers() {
       .then((response) => response.json())
       .then((data) => setTeachers(data))
       .catch((error) => console.error('File upload error:', error));
+  };
+
+  // Ensure subjects is always an array
+  const normalizeSubjects = (subjects) => {
+    if (!subjects) return [];
+    return Array.isArray(subjects) ? subjects : subjects.split(',').map((subject) => subject.trim());
   };
 
   return (
@@ -100,10 +115,10 @@ function Teachers() {
             <tr key={teacher.id}>
               <td>{teacher.name}</td>
               <td>{teacher.email}</td>
-              <td>{teacher.phoneNumber}</td>
-              <td>{teacher.classAssigned}</td>
+              <td>{teacher.phone_number}</td> {/* Updated to match model */}
+              <td>{teacher.class_assigned}</td> {/* Updated to match model */}
               <td>
-                {teacher.subjects?.map((subject, index) => (
+                {normalizeSubjects(teacher.subjects)?.map((subject, index) => (
                   <Badge bg="info" key={index} className="me-1">
                     {subject}
                   </Badge>
@@ -159,9 +174,9 @@ function Teachers() {
               <Form.Control
                 type="text"
                 placeholder="Enter phone number"
-                value={currentTeacher?.phoneNumber || ''}
+                value={currentTeacher?.phone_number || ''}
                 onChange={(e) =>
-                  setCurrentTeacher({ ...currentTeacher, phoneNumber: e.target.value })
+                  setCurrentTeacher({ ...currentTeacher, phone_number: e.target.value })
                 }
               />
             </Form.Group>
@@ -170,9 +185,9 @@ function Teachers() {
               <Form.Control
                 type="text"
                 placeholder="Enter class"
-                value={currentTeacher?.classAssigned || ''}
+                value={currentTeacher?.class_assigned || ''}
                 onChange={(e) =>
-                  setCurrentTeacher({ ...currentTeacher, classAssigned: e.target.value })
+                  setCurrentTeacher({ ...currentTeacher, class_assigned: e.target.value })
                 }
               />
             </Form.Group>
