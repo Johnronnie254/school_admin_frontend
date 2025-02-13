@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Nav, NavDropdown, Container, Row, Col } from 'react-bootstrap';
+import React, { useState, useEffect } from "react";
+import { Table, Button, Modal, Form, Nav, NavDropdown, Container, Row, Col } from "react-bootstrap";
 
 function Students() {
   const [students, setStudents] = useState([]);
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false); // For edit mode toggle
-  const [studentToEdit, setStudentToEdit] = useState(null); // For editing specific student
-  const [newStudent, setNewStudent] = useState({ name: '', guardian: '', contact: '', grade: '' });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [studentToEdit, setStudentToEdit] = useState(null);
+  const [newStudent, setNewStudent] = useState({ name: "", guardian: "", contact: "" });
   const [file, setFile] = useState(null);
 
   useEffect(() => {
     if (selectedGrade) {
-      // Fetch students data for the selected grade
-      fetch(`http://localhost:8000/api/students/?grade=${selectedGrade}`) // Updated API URL
+      // Fetch students from a specific grade-based endpoint
+      fetch(`http://localhost:8000/api/students/grade-${selectedGrade}/`)
         .then((response) => response.json())
         .then((data) => setStudents(data))
-        .catch((error) => console.error('Error fetching students:', error));
+        .catch((error) => console.error("Error fetching students:", error));
     }
   }, [selectedGrade]);
 
@@ -27,25 +27,24 @@ function Students() {
   const handleFileSubmit = () => {
     if (!file || !selectedGrade) return;
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('grade', selectedGrade);
+    formData.append("file", file);
 
-    fetch('http://localhost:8000/api/students/upload_students/', { // Updated API URL
-      method: 'POST',
+    fetch(`http://localhost:8000/api/students/grade-${selectedGrade}/upload/`, {
+      method: "POST",
       body: formData,
     })
       .then((response) => response.json())
       .then((data) => {
         setStudents(data);
-        alert('File uploaded successfully!');
+        alert("File uploaded successfully!");
       })
-      .catch((error) => console.error('File upload error:', error));
+      .catch((error) => console.error("File upload error:", error));
   };
 
   const handleCreateStudent = () => {
-    fetch('http://localhost:8000/api/students/', { // Updated API URL
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch(`http://localhost:8000/api/students/grade-${selectedGrade}/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newStudent),
     })
       .then((response) => response.json())
@@ -53,20 +52,20 @@ function Students() {
         setStudents((prev) => [...prev, data]);
         setShowModal(false);
       })
-      .catch((error) => console.error('Error creating student:', error));
+      .catch((error) => console.error("Error creating student:", error));
   };
 
   const handleEditStudent = (student) => {
     setStudentToEdit(student);
-    setNewStudent({ name: student.name, guardian: student.guardian, contact: student.contact, grade: student.grade });
+    setNewStudent({ name: student.name, guardian: student.guardian, contact: student.contact });
     setIsEditMode(true);
     setShowModal(true);
   };
 
   const handleUpdateStudent = () => {
-    fetch(`http://localhost:8000/api/students/${studentToEdit.id}/`, { // Updated API URL
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+    fetch(`http://localhost:8000/api/students/grade-${selectedGrade}/${studentToEdit.id}/`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newStudent),
     })
       .then((response) => response.json())
@@ -74,17 +73,17 @@ function Students() {
         setStudents((prev) => prev.map((student) => (student.id === data.id ? data : student)));
         setShowModal(false);
       })
-      .catch((error) => console.error('Error updating student:', error));
+      .catch((error) => console.error("Error updating student:", error));
   };
 
   const handleDeleteStudent = (id) => {
-    fetch(`http://localhost:8000/api/students/${id}/`, { // Updated API URL
-      method: 'DELETE',
+    fetch(`http://localhost:8000/api/students/grade-${selectedGrade}/${id}/`, {
+      method: "DELETE",
     })
       .then(() => {
         setStudents((prev) => prev.filter((student) => student.id !== id));
       })
-      .catch((error) => console.error('Error deleting student:', error));
+      .catch((error) => console.error("Error deleting student:", error));
   };
 
   return (
@@ -124,7 +123,6 @@ function Students() {
                     <th>Name</th>
                     <th>Guardian</th>
                     <th>Contact</th>
-                    <th>Grade</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -134,19 +132,11 @@ function Students() {
                       <td>{student.name}</td>
                       <td>{student.guardian}</td>
                       <td>{student.contact}</td>
-                      <td>{student.grade}</td>
                       <td>
-                        <Button
-                          variant="warning"
-                          onClick={() => handleEditStudent(student)}
-                        >
+                        <Button variant="warning" onClick={() => handleEditStudent(student)}>
                           Edit
                         </Button>
-                        <Button
-                          variant="danger"
-                          onClick={() => handleDeleteStudent(student.id)}
-                          className="ms-2"
-                        >
+                        <Button variant="danger" onClick={() => handleDeleteStudent(student.id)} className="ms-2">
                           Delete
                         </Button>
                       </td>
@@ -161,7 +151,7 @@ function Students() {
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>{isEditMode ? 'Edit Student' : 'Add New Student'}</Modal.Title>
+          <Modal.Title>{isEditMode ? "Edit Student" : "Add New Student"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -189,14 +179,6 @@ function Students() {
                 onChange={(e) => setNewStudent({ ...newStudent, contact: e.target.value })}
               />
             </Form.Group>
-            <Form.Group controlId="grade">
-              <Form.Label>Grade</Form.Label>
-              <Form.Control
-                type="text"
-                value={newStudent.grade}
-                onChange={(e) => setNewStudent({ ...newStudent, grade: e.target.value })}
-              />
-            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -204,7 +186,7 @@ function Students() {
             Close
           </Button>
           <Button variant="primary" onClick={isEditMode ? handleUpdateStudent : handleCreateStudent}>
-            {isEditMode ? 'Update Student' : 'Add Student'}
+            {isEditMode ? "Update Student" : "Add Student"}
           </Button>
         </Modal.Footer>
       </Modal>
