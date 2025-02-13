@@ -3,9 +3,10 @@ import { Table, Button, Modal, Form, Nav, NavDropdown, Container, Row, Col } fro
 
 function Students() {
   const [students, setStudents] = useState([]);
-  const [grades, setGrades] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]); // Grades 1-9
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // For edit mode toggle
+  const [studentToEdit, setStudentToEdit] = useState(null); // For editing specific student
   const [newStudent, setNewStudent] = useState({ name: '', guardian: '', contact: '', grade: '' });
   const [file, setFile] = useState(null);
 
@@ -55,6 +56,27 @@ function Students() {
       .catch((error) => console.error('Error creating student:', error));
   };
 
+  const handleEditStudent = (student) => {
+    setStudentToEdit(student);
+    setNewStudent({ name: student.name, guardian: student.guardian, contact: student.contact, grade: student.grade });
+    setIsEditMode(true);
+    setShowModal(true);
+  };
+
+  const handleUpdateStudent = () => {
+    fetch(`http://localhost:8000/api/students/${studentToEdit.id}/`, { // Updated API URL
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newStudent),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setStudents((prev) => prev.map((student) => (student.id === data.id ? data : student)));
+        setShowModal(false);
+      })
+      .catch((error) => console.error('Error updating student:', error));
+  };
+
   const handleDeleteStudent = (id) => {
     fetch(`http://localhost:8000/api/students/${id}/`, { // Updated API URL
       method: 'DELETE',
@@ -72,7 +94,7 @@ function Students() {
           <Nav className="flex-column">
             <Nav.Link disabled>Students</Nav.Link>
             <NavDropdown title="Select Grade" id="nav-dropdown">
-              {grades.map((grade) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((grade) => (
                 <NavDropdown.Item key={grade} onClick={() => setSelectedGrade(grade)}>
                   Grade {grade}
                 </NavDropdown.Item>
@@ -115,8 +137,15 @@ function Students() {
                       <td>{student.grade}</td>
                       <td>
                         <Button
+                          variant="warning"
+                          onClick={() => handleEditStudent(student)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
                           variant="danger"
                           onClick={() => handleDeleteStudent(student.id)}
+                          className="ms-2"
                         >
                           Delete
                         </Button>
@@ -132,7 +161,7 @@ function Students() {
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add New Student</Modal.Title>
+          <Modal.Title>{isEditMode ? 'Edit Student' : 'Add New Student'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -174,8 +203,8 @@ function Students() {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleCreateStudent}>
-            Add Student
+          <Button variant="primary" onClick={isEditMode ? handleUpdateStudent : handleCreateStudent}>
+            {isEditMode ? 'Update Student' : 'Add Student'}
           </Button>
         </Modal.Footer>
       </Modal>

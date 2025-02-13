@@ -196,7 +196,7 @@ function Teachers() {
               <Form.Control
                 type="text"
                 placeholder="Enter subjects (comma-separated)"
-                value={currentTeacher?.subjects?.join(', ') || ''}
+                value={Array.isArray(currentTeacher?.subjects) ? currentTeacher?.subjects.join(', ') : ''} 
                 onChange={(e) =>
                   setCurrentTeacher({
                     ...currentTeacher,
