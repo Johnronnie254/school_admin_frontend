@@ -5,11 +5,12 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [showForm, setShowForm] = useState(false); // Controls login form visibility
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setError(""); // Clear previous errors
+        setError("");
 
         try {
             const response = await fetch("http://localhost:8000/login/", {
@@ -21,15 +22,13 @@ const Login = () => {
             });
 
             const data = await response.json();
+            console.log("Response Data:", data); // Debugging log
 
             if (response.ok) {
-                // Store JWT token in localStorage
-                localStorage.setItem("token", data.token);
-
-                // Redirect to dashboard or home page
-                navigate("/dashboard");
+                localStorage.setItem("token", data.access); // Store JWT access token
+                navigate("/dashboard"); // Redirect to dashboard
             } else {
-                setError(data.message || "Invalid login credentials");
+                setError(data.message || "Invalid email or password.");
             }
         } catch (error) {
             setError("An error occurred. Please try again.");
@@ -38,29 +37,37 @@ const Login = () => {
 
     return (
         <div>
-            <h2>Login</h2>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            <form onSubmit={handleLogin}>
-                <label>Email:</label>
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-                <br />
+            <button onClick={() => setShowForm(!showForm)}>
+                {showForm ? "Hide Login" : "Show Login"}
+            </button>
 
-                <label>Password:</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <br />
+            {showForm && (
+                <div>
+                    <h2>Login</h2>
+                    {error && <p style={{ color: "red" }}>{error}</p>}
+                    <form onSubmit={handleLogin}>
+                        <label>Email:</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                        <br />
 
-                <button type="submit">Login</button>
-            </form>
+                        <label>Password:</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <br />
+
+                        <button type="submit">Login</button>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };
