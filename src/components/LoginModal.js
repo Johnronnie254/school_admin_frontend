@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { Modal, Button, Form } from 'react-bootstrap';
 
-const Login = () => {
+const LoginModal = ({ show, handleClose, setIsAuthenticated }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [showForm, setShowForm] = useState(false); // Controls login form visibility
-    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -15,17 +13,16 @@ const Login = () => {
         try {
             const response = await fetch("http://localhost:8000/login/", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem("token", data.access); // Store JWT access token
-                navigate("/dashboard"); // Redirect to dashboard
+                localStorage.setItem("token", data.access); // Store JWT token
+                setIsAuthenticated(true); // Set authentication state
+                handleClose(); // Close the modal after successful login
             } else {
                 setError(data.message || "Invalid email or password.");
             }
@@ -35,40 +32,41 @@ const Login = () => {
     };
 
     return (
-        <div>
-            {/* Single Login button that toggles form */}
-            {!showForm ? (
-                <button onClick={() => setShowForm(true)}>Login</button>
-            ) : (
-                <div>
-                    <h2>Login</h2>
-                    {error && <p style={{ color: "red" }}>{error}</p>}
-                    <form onSubmit={handleLogin}>
-                        <label>Email:</label>
-                        <input
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Login</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                <Form onSubmit={handleLogin}>
+                    <Form.Group>
+                        <Form.Label>Email:</Form.Label>
+                        <Form.Control
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
-                        <br />
+                    </Form.Group>
 
-                        <label>Password:</label>
-                        <input
+                    <Form.Group>
+                        <Form.Label>Password:</Form.Label>
+                        <Form.Control
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
-                        <br />
+                    </Form.Group>
 
-                        <button type="submit">Login</button>
-                        <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
-                    </form>
-                </div>
-            )}
-        </div>
+                    <div className="d-flex justify-content-between mt-3">
+                        <Button variant="primary" type="submit">Login</Button>
+                        <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+                    </div>
+                </Form>
+            </Modal.Body>
+        </Modal>
     );
 };
 
-export default Login;
+export default LoginModal;
