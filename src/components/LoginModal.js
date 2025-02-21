@@ -36,12 +36,10 @@ const Login = () => {
 
     return (
         <div>
-            {/* Buttons for Login & Sign Up */}
-            <button onClick={() => setShowForm(true)}>Login</button>
-            <button onClick={() => navigate("/signup")}>Sign Up</button>
-
-            {/* Show login form only when "Login" is clicked */}
-            {showForm && (
+            {/* Single Login button that toggles form */}
+            {!showForm ? (
+                <button onClick={() => setShowForm(true)}>Login</button>
+            ) : (
                 <div>
                     <h2>Login</h2>
                     {error && <p style={{ color: "red" }}>{error}</p>}
