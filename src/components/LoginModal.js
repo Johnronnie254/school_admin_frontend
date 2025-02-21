@@ -5,7 +5,7 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [showForm, setShowForm] = useState(false);
+    const [showForm, setShowForm] = useState(false); // Controls login form visibility
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
@@ -25,7 +25,7 @@ const Login = () => {
 
             if (response.ok) {
                 localStorage.setItem("token", data.access); // Store JWT access token
-                navigate("/dashboard");
+                navigate("/dashboard"); // Redirect to dashboard
             } else {
                 setError(data.message || "Invalid email or password.");
             }
@@ -36,15 +36,11 @@ const Login = () => {
 
     return (
         <div>
-            {/* Login and Sign Up Buttons */}
-            {!showForm && (
-                <div>
-                    <button onClick={() => setShowForm(true)}>Login</button>
-                    <button onClick={() => navigate("/register")}>Sign Up</button>
-                </div>
-            )}
+            {/* Buttons for Login & Sign Up */}
+            <button onClick={() => setShowForm(true)}>Login</button>
+            <button onClick={() => navigate("/signup")}>Sign Up</button>
 
-            {/* Login Form (Only appears when Login button is clicked) */}
+            {/* Show login form only when "Login" is clicked */}
             {showForm && (
                 <div>
                     <h2>Login</h2>
