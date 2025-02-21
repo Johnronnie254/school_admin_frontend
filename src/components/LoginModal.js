@@ -1,53 +1,68 @@
-import React, { useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const LoginModal = ({ show, handleClose, setIsAuthenticated }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Login = () => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Send cookies with request
-        body: JSON.stringify({ email, password }),
-      });
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError(""); // Clear previous errors
 
-      if (response.ok) {
-        setIsAuthenticated(true);
-        handleClose();
-      } else {
-        alert('Invalid credentials');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-    }
-  };
+        try {
+            const response = await fetch("http://localhost:8000/login/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
-  return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Login</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form onSubmit={handleLogin}>
-          <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Password</Form.Label>
-            <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </Form.Group>
-          <Button variant="primary" type="submit">
-            Login
-          </Button>
-        </Form>
-      </Modal.Body>
-    </Modal>
-  );
+            const data = await response.json();
+
+            if (response.ok) {
+                // Store JWT token in localStorage
+                localStorage.setItem("token", data.token);
+
+                // Redirect to dashboard or home page
+                navigate("/dashboard");
+            } else {
+                setError(data.message || "Invalid login credentials");
+            }
+        } catch (error) {
+            setError("An error occurred. Please try again.");
+        }
+    };
+
+    return (
+        <div>
+            <h2>Login</h2>
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            <form onSubmit={handleLogin}>
+                <label>Email:</label>
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                />
+                <br />
+
+                <label>Password:</label>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+                <br />
+
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    );
 };
 
-export default LoginModal;
+export default Login;
