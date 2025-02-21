@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Teachers from './components/Teachers';
 import Students from './components/Students';
 import Dashboard from './Dashboard';
+import Performance from './components/Performance';  // Import Performance component
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/teachers" element={<Teachers />} />
             <Route path="/students" element={<Students />} />
-            <Route path="/performance" element={<div>Performance Page</div>} />
+            <Route path="/performance" element={<Performance />} />  {/* Render Performance component */}
             <Route path="/notifications" element={<div>Notifications Page</div>} />
             <Route path="/fees" element={<div>Fee Management Page</div>} />
           </Routes>
