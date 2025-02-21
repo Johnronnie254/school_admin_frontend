@@ -1,156 +1,182 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Bar } from 'react-chartjs-2';
-import axios from 'axios';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-} from 'chart.js';
+import React, { useState, useEffect } from 'react';
+import { Card, Dropdown, Button, Container, Row, Col, Table, Navbar } from 'react-bootstrap';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
-// Register the necessary components for Chart.js
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+// Register necessary components for Chart.js
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const Performance = () => {
-  // Placeholder for student performance data
-  const [performanceData, setPerformanceData] = useState(null);
-  const chartRef = useRef(null);
+  const [selectedGrade, setSelectedGrade] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [studentData, setStudentData] = useState([]);
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Function to simulate fetching data (replace with actual API calls later)
-    const fetchPerformanceData = async () => {
-      try {
-        // Placeholder: Use hashed API endpoints
-        const response = await axios.get('https://api.example.com/api/performance'); // Placeholder endpoint
-        setPerformanceData(response.data);
-      } catch (error) {
-        console.error('Error fetching performance data:', error);
-      }
-    };
-
-    fetchPerformanceData();
-
-    // Cleanup: destroy chart if component unmounts or when data is updated
-    return () => {
-      if (chartRef.current && chartRef.current.chart) {
-        chartRef.current.chart.destroy();
-      }
-    };
-  }, []);
-
-  // Placeholder data for now
-  const chartData = {
-    labels: ['Playgroup', 'PP1', 'PP2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7'],
-    datasets: [
-      {
-        label: 'Average Performance',
-        data: [75, 80, 85, 90, 92, 88, 85, 80, 78, 90], // Dummy data
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1
-      }
-    ]
+  // Hardcoded CBC Subjects for each Grade
+  const cbcSubjects = {
+    "Playgroup": ["Creative Arts", "Motor Skills", "Physical Education", "Language Development", "Social Studies"],
+    "PP1": ["Mathematics", "Kiswahili", "English", "Environmental Activities", "Physical Education"],
+    "PP2": ["Mathematics", "Kiswahili", "English", "Science", "Social Studies"],
+    "Grade 1": ["Mathematics", "English", "Kiswahili", "Science", "Social Studies", "CRE", "Music"],
+    "Grade 2": ["Mathematics", "English", "Kiswahili", "Science", "Social Studies", "CRE", "Music", "Art"],
+    "Grade 3": ["Mathematics", "English", "Kiswahili", "Science", "Social Studies", "CRE", "Art", "Music", "Physical Education"],
+    "Grade 4": ["Mathematics", "English", "Kiswahili", "Science", "Social Studies", "CRE", "Art", "Music", "Physical Education"],
+    "Grade 5": ["Mathematics", "English", "Kiswahili", "Science", "Social Studies", "CRE", "Art", "Music", "Home Science"],
+    "Grade 6": ["Mathematics", "English", "Kiswahili", "Science", "Social Studies", "CRE", "Art", "Music", "Agriculture"],
+    "Grade 7": ["Mathematics", "English", "Kiswahili", "Science", "Social Studies", "CRE", "Art", "Music", "Agriculture", "Home Science"]
   };
 
-  const options = {
-    responsive: true,
-    plugins: {
-      title: {
-        display: true,
-        text: 'Student Performance Analysis'
-      },
-      tooltip: {
-        enabled: true
-      }
-    },
-    scales: {
-      x: {
-        beginAtZero: true
-      },
-      y: {
-        beginAtZero: true,
-        max: 100
-      }
+  // Handle grade selection
+  const handleGradeSelect = (grade) => {
+    setSelectedGrade(grade);
+    setSelectedSubject(''); // Reset subject selection when grade changes
+    setChartData(null); // Reset chart data
+    fetchPerformanceData(grade); // Fetch new data when grade changes
+  };
+
+  // Handle subject selection
+  const handleSubjectSelect = (subject) => {
+    setSelectedSubject(subject);
+    fetchChartData(selectedGrade, subject); // Fetch performance chart data
+  };
+
+  // Fetch performance data based on selected grade
+  const fetchPerformanceData = async (grade) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/performance/${grade}`);
+      const data = await response.json();
+      setStudentData(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching performance data:', error);
+      setLoading(false);
     }
   };
 
-  return (
-    <div>
-      <h2>Performance Overview</h2>
-      {/* Chart Rendering */}
-      <div style={{ height: '400px', width: '100%' }}>
-        <Bar ref={chartRef} data={chartData} options={options} />
-      </div>
+  // Fetch chart data for selected grade and subject
+  const fetchChartData = async (grade, subject) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/chart/${grade}/${subject}`);
+      const data = await response.json();
+      const chartData = {
+        labels: data.terms, // e.g., ['Term 1', 'Term 2', 'Term 3']
+        datasets: [
+          {
+            label: `${subject} Performance`,
+            data: data.scores, // e.g., [80, 85, 90]
+            borderColor: 'rgba(75,192,192,1)',
+            fill: false,
+          }
+        ]
+      };
+      setChartData(chartData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+      setLoading(false);
+    }
+  };
 
-      <h3>Performance Data for All Grades (CBC)</h3>
-      <table className="table table-striped">
+  // Render the performance table for selected grade and subject
+  const renderPerformanceTable = () => {
+    if (loading) {
+      return <p>Loading data...</p>;
+    }
+    return (
+      <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Grade</th>
-            <th>Average Performance</th>
-            <th>Top Performers</th>
-            <th>Improvement Areas</th>
-            <th>Overall Score</th>
-            <th>Subject-wise Breakdown</th>
-            <th>Attendance Rate</th>
-            <th>Disciplinary Issues</th>
-            <th>Teacher Feedback</th>
-            <th>Parent Feedback</th>
-            <th>Quiz Scores</th>
-            <th>Exam Scores</th>
-            <th>Assignments Completed</th>
-            <th>Absenteeism</th>
-            <th>Behavioral Observations</th>
-            <th>Class Participation</th>
-            <th>Homework Completion</th>
-            <th>Self-Discipline</th>
-            <th>Physical Education Score</th>
-            <th>Health & Wellness</th> {/* New feature */}
-            <th>Extra-Curricular Participation</th> {/* New feature */}
+            <th>Student Name</th>
+            {Object.keys(studentData[0]?.subjects || {}).map(subject => (
+              <th key={subject}>{subject}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {/* Example hard-coded data for now */}
-          {[...Array(10)].map((_, index) => (
+          {studentData.map((student, index) => (
             <tr key={index}>
-              <td>{['Playgroup', 'PP1', 'PP2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7'][index]}</td>
-              <td>{(75 + index * 2)}%</td>
-              <td>John Doe, Jane Smith</td>
-              <td>Math, Science</td>
-              <td>{(80 + index * 2)}%</td>
-              <td>Math: 80%, English: 85%</td>
-              <td>95%</td>
-              <td>No issues</td>
-              <td>Good progress</td>
-              <td>Active participation</td>
-              <td>90%</td>
-              <td>85%</td>
-              <td>98%</td>
-              <td>1-2 days</td>
-              <td>Positive</td>
-              <td>Active</td>
-              <td>Completed all tasks</td>
-              <td>Good</td>
-              <td>95%</td>
-              <td>Good</td> {/* Health & Wellness */}
-              <td>Soccer, Drama</td> {/* Extra-Curricular Participation */}
+              <td>{student.name}</td>
+              {Object.values(student.subjects).map((score, index) => (
+                <td key={index}>{score}</td>
+              ))}
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </Table>
+    );
+  };
+
+  return (
+    <Container>
+      <Navbar bg="dark" variant="dark">
+        <Navbar.Brand href="#home">Performance Dashboard</Navbar.Brand>
+      </Navbar>
+
+      <Row className="mt-4">
+        <Col sm={3}>
+          <Card>
+            <Card.Header>Select Grade</Card.Header>
+            <Card.Body>
+              <Dropdown>
+                <Dropdown.Toggle variant="success" id="dropdown-basic">
+                  {selectedGrade || 'Select Grade'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {Object.keys(cbcSubjects).map((grade) => (
+                    <Dropdown.Item key={grade} onClick={() => handleGradeSelect(grade)}>{grade}</Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col sm={3}>
+          <Card>
+            <Card.Header>Select Subject</Card.Header>
+            <Card.Body>
+              <Dropdown disabled={!selectedGrade}>
+                <Dropdown.Toggle variant="success" id="dropdown-basic">
+                  {selectedSubject || 'Select Subject'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {selectedGrade && cbcSubjects[selectedGrade].map((subject, index) => (
+                    <Dropdown.Item key={index} onClick={() => handleSubjectSelect(subject)}>{subject}</Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col sm={6}>
+          <Card>
+            <Card.Header>Performance Chart</Card.Header>
+            <Card.Body>
+              {loading ? (
+                <p>Loading chart...</p>
+              ) : (
+                chartData ? <Line data={chartData} /> : <p>Select grade and subject to view the chart.</p>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mt-4">
+        <Col>
+          <Card>
+            <Card.Header>Performance Table</Card.Header>
+            <Card.Body>
+              {renderPerformanceTable()}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
