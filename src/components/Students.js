@@ -13,7 +13,7 @@ function Students() {
   useEffect(() => {
     if (selectedGrade) {
       // Fetch students from a specific grade-based endpoint
-      fetch(`http://localhost:8000/api/students/grade-${selectedGrade}/`)
+      fetch(`http://localhost:8000/api/students/grade/${selectedGrade}/`)
         .then((response) => response.json())
         .then((data) => setStudents(data))
         .catch((error) => console.error("Error fetching students:", error));
