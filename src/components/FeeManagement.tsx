@@ -1,6 +1,6 @@
 import React from 'react';
 
-const FeeManagement = () => {
+const FeeManagement: React.FC = () => {
   return (
     <div>
       <h2>Fee Management</h2>
@@ -9,4 +9,4 @@ const FeeManagement = () => {
   );
 };
 
-export default FeeManagement;
+export default FeeManagement; 

@@ -1,33 +1,32 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
-const LoginModal = ({ show, handleClose, setIsAuthenticated }) => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+interface LoginModalProps {
+    show: boolean;
+    handleClose: () => void;
+    setIsAuthenticated: (value: boolean) => void;
+}
 
-    const handleLogin = async (e) => {
+const LoginModal: React.FC<LoginModalProps> = ({ show, handleClose, setIsAuthenticated }) => {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [error, setError] = useState<string>("");
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
         try {
-            const response = await fetch("http://localhost:8000/login/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem("token", data.access); // Store JWT token
-                setIsAuthenticated(true); // Set authentication state
-                handleClose(); // Close the modal after successful login
-            } else {
-                setError(data.message || "Invalid email or password.");
-            }
+            const response = await api.login(email, password);
+            localStorage.setItem("token", response.data.data.token);
+            setIsAuthenticated(true);
+            handleClose();
+            navigate('/dashboard');
         } catch (error) {
-            setError("An error occurred. Please try again.");
+            setError("Invalid email or password. Try admin@school.com / password");
         }
     };
 
@@ -39,22 +38,22 @@ const LoginModal = ({ show, handleClose, setIsAuthenticated }) => {
             <Modal.Body>
                 {error && <p style={{ color: "red" }}>{error}</p>}
                 <Form onSubmit={handleLogin}>
-                    <Form.Group>
+                    <Form.Group className="mb-3">
                         <Form.Label>Email:</Form.Label>
                         <Form.Control
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                             required
                         />
                     </Form.Group>
 
-                    <Form.Group>
+                    <Form.Group className="mb-3">
                         <Form.Label>Password:</Form.Label>
                         <Form.Control
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                             required
                         />
                     </Form.Group>
@@ -69,4 +68,4 @@ const LoginModal = ({ show, handleClose, setIsAuthenticated }) => {
     );
 };
 
-export default LoginModal;
+export default LoginModal; 

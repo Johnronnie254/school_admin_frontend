@@ -1,28 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Alert, Badge } from 'react-bootstrap';
 
-function Teachers() {
-  const [teachers, setTeachers] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [currentTeacher, setCurrentTeacher] = useState(null);
-  const [showAlert, setShowAlert] = useState(false);
+interface Teacher {
+  id: number;
+  name: string;
+  email: string;
+  phone_number: string;
+  class_assigned: string;
+  subjects: string[];
+}
+
+const Teachers: React.FC = () => {
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [currentTeacher, setCurrentTeacher] = useState<Teacher | null>(null);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
 
   useEffect(() => {
     // Fetch teachers from the API
-    fetch('http://localhost:8000/api/teachers/') // Updated API endpoint
+    fetch('http://localhost:8000/api/teachers/')
       .then((response) => response.json())
-      .then((data) => setTeachers(data))
+      .then((data: Teacher[]) => setTeachers(data))
       .catch((error) => console.error('Error fetching teachers:', error));
   }, []);
 
-  const handleEdit = (teacher) => {
+  const handleEdit = (teacher: Teacher) => {
     setCurrentTeacher(teacher);
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     // Call API to delete teacher
-    fetch(`http://localhost:8000/api/teachers/${id}/`, { method: 'DELETE' }) // Updated API endpoint
+    fetch(`http://localhost:8000/api/teachers/${id}/`, { method: 'DELETE' })
       .then(() => {
         setTeachers(teachers.filter((teacher) => teacher.id !== id));
         setShowAlert(true);
@@ -32,28 +41,30 @@ function Teachers() {
   };
 
   const handleSave = () => {
+    if (!currentTeacher) return;
+
     // Save logic for add/edit teacher to API
-    const method = currentTeacher ? 'PUT' : 'POST';
-    const url = currentTeacher
-      ? `http://localhost:8000/api/teachers/${currentTeacher.id}/` // Updated API endpoint
-      : 'http://localhost:8000/api/teachers/'; // Updated API endpoint
+    const method = currentTeacher.id ? 'PUT' : 'POST';
+    const url = currentTeacher.id
+      ? `http://localhost:8000/api/teachers/${currentTeacher.id}/`
+      : 'http://localhost:8000/api/teachers/';
 
     const teacherToSave = {
-      name: currentTeacher?.name,
-      email: currentTeacher?.email,
-      phone_number: currentTeacher?.phone_number, // Corrected to match model
-      class_assigned: currentTeacher?.class_assigned, // Corrected to match model
-      subjects: currentTeacher?.subjects, // Assuming backend expects an array
+      name: currentTeacher.name,
+      email: currentTeacher.email,
+      phone_number: currentTeacher.phone_number,
+      class_assigned: currentTeacher.class_assigned,
+      subjects: currentTeacher.subjects,
     };
 
     fetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(teacherToSave), // Send updated object to backend
+      body: JSON.stringify(teacherToSave),
     })
       .then((response) => response.json())
-      .then((data) => {
-        if (currentTeacher) {
+      .then((data: Teacher) => {
+        if (currentTeacher.id) {
           setTeachers(teachers.map((teacher) => (teacher.id === data.id ? data : teacher)));
         } else {
           setTeachers((prev) => [...prev, data]);
@@ -64,24 +75,27 @@ function Teachers() {
       .catch((error) => console.error('Error saving teacher:', error));
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || !event.target.files[0]) return;
+
     const file = event.target.files[0];
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch('http://localhost:8000/api/teachers/upload_teachers/', { // Updated API endpoint
+    fetch('http://localhost:8000/api/teachers/upload_teachers/', {
       method: 'POST',
       body: formData,
     })
       .then((response) => response.json())
-      .then((data) => setTeachers(data))
+      .then((data: Teacher[]) => setTeachers(data))
       .catch((error) => console.error('File upload error:', error));
   };
 
   // Ensure subjects is always an array
-  const normalizeSubjects = (subjects) => {
+  const normalizeSubjects = (subjects: string[] | string | undefined): string[] => {
     if (!subjects) return [];
-    return Array.isArray(subjects) ? subjects : subjects.split(',').map((subject) => subject.trim());
+    if (Array.isArray(subjects)) return subjects;
+    return subjects.split(',').map((subject: string) => subject.trim());
   };
 
   return (
@@ -115,10 +129,10 @@ function Teachers() {
             <tr key={teacher.id}>
               <td>{teacher.name}</td>
               <td>{teacher.email}</td>
-              <td>{teacher.phone_number}</td> {/* Updated to match model */}
-              <td>{teacher.class_assigned}</td> {/* Updated to match model */}
+              <td>{teacher.phone_number}</td>
+              <td>{teacher.class_assigned}</td>
               <td>
-                {normalizeSubjects(teacher.subjects)?.map((subject, index) => (
+                {normalizeSubjects(teacher.subjects).map((subject, index) => (
                   <Badge bg="info" key={index} className="me-1">
                     {subject}
                   </Badge>
@@ -143,7 +157,7 @@ function Teachers() {
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>{currentTeacher ? 'Edit Teacher' : 'Add Teacher'}</Modal.Title>
+          <Modal.Title>{currentTeacher?.id ? 'Edit Teacher' : 'Add Teacher'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -153,8 +167,8 @@ function Teachers() {
                 type="text"
                 placeholder="Enter name"
                 value={currentTeacher?.name || ''}
-                onChange={(e) =>
-                  setCurrentTeacher({ ...currentTeacher, name: e.target.value })
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCurrentTeacher(currentTeacher ? { ...currentTeacher, name: e.target.value } : null)
                 }
               />
             </Form.Group>
@@ -164,8 +178,8 @@ function Teachers() {
                 type="email"
                 placeholder="Enter email"
                 value={currentTeacher?.email || ''}
-                onChange={(e) =>
-                  setCurrentTeacher({ ...currentTeacher, email: e.target.value })
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCurrentTeacher(currentTeacher ? { ...currentTeacher, email: e.target.value } : null)
                 }
               />
             </Form.Group>
@@ -175,8 +189,8 @@ function Teachers() {
                 type="text"
                 placeholder="Enter phone number"
                 value={currentTeacher?.phone_number || ''}
-                onChange={(e) =>
-                  setCurrentTeacher({ ...currentTeacher, phone_number: e.target.value })
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCurrentTeacher(currentTeacher ? { ...currentTeacher, phone_number: e.target.value } : null)
                 }
               />
             </Form.Group>
@@ -186,8 +200,8 @@ function Teachers() {
                 type="text"
                 placeholder="Enter class"
                 value={currentTeacher?.class_assigned || ''}
-                onChange={(e) =>
-                  setCurrentTeacher({ ...currentTeacher, class_assigned: e.target.value })
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCurrentTeacher(currentTeacher ? { ...currentTeacher, class_assigned: e.target.value } : null)
                 }
               />
             </Form.Group>
@@ -196,12 +210,16 @@ function Teachers() {
               <Form.Control
                 type="text"
                 placeholder="Enter subjects (comma-separated)"
-                value={Array.isArray(currentTeacher?.subjects) ? currentTeacher?.subjects.join(', ') : ''} 
-                onChange={(e) =>
-                  setCurrentTeacher({
-                    ...currentTeacher,
-                    subjects: e.target.value.split(',').map((s) => s.trim()),
-                  })
+                value={currentTeacher?.subjects ? currentTeacher.subjects.join(', ') : ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCurrentTeacher(
+                    currentTeacher
+                      ? {
+                          ...currentTeacher,
+                          subjects: e.target.value.split(',').map((s) => s.trim()),
+                        }
+                      : null
+                  )
                 }
               />
             </Form.Group>
@@ -218,6 +236,6 @@ function Teachers() {
       </Modal>
     </div>
   );
-}
+};
 
-export default Teachers;
+export default Teachers; 
