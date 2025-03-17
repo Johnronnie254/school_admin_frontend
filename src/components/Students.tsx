@@ -1,25 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Modal, Form, Nav, Container, Row, Col } from "react-bootstrap";
 
-function Students() {
-  const [students, setStudents] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [studentToEdit, setStudentToEdit] = useState(null);
-  const [newStudent, setNewStudent] = useState({ name: "", guardian: "", contact: "" });
-  const [file, setFile] = useState(null);
+interface Student {
+  id: number;
+  name: string;
+  guardian: string;
+  contact: string;
+}
+
+interface NewStudent {
+  name: string;
+  guardian: string;
+  contact: string;
+}
+
+const Students: React.FC = () => {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
+  const [newStudent, setNewStudent] = useState<NewStudent>({ name: "", guardian: "", contact: "" });
+  const [file, setFile] = useState<File | null>(null);
 
   // Fetch all students from the backend
   useEffect(() => {
     fetch("http://localhost:8000/api/students/")
       .then((response) => response.json())
-      .then((data) => setStudents(data))
+      .then((data: Student[]) => setStudents(data))
       .catch((error) => console.error("Error fetching students:", error));
   }, []);
 
   // Handle file selection
-  const handleFileUpload = (event) => {
-    setFile(event.target.files[0]);
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setFile(event.target.files[0]);
+    }
   };
 
   // Handle file submission
@@ -33,7 +48,7 @@ function Students() {
       body: formData,
     })
       .then((response) => response.json())
-      .then((data) => {
+      .then((data: Student[]) => {
         setStudents(data);
         alert("File uploaded successfully!");
       })
@@ -48,7 +63,7 @@ function Students() {
       body: JSON.stringify(newStudent),
     })
       .then((response) => response.json())
-      .then((data) => {
+      .then((data: Student) => {
         setStudents((prev) => [...prev, data]);
         setShowModal(false);
         setNewStudent({ name: "", guardian: "", contact: "" });
@@ -57,7 +72,7 @@ function Students() {
   };
 
   // Handle student edit
-  const handleEditStudent = (student) => {
+  const handleEditStudent = (student: Student) => {
     setStudentToEdit(student);
     setNewStudent({ name: student.name, guardian: student.guardian, contact: student.contact });
     setIsEditMode(true);
@@ -66,13 +81,15 @@ function Students() {
 
   // Handle student update
   const handleUpdateStudent = () => {
+    if (!studentToEdit) return;
+    
     fetch(`http://localhost:8000/api/students/${studentToEdit.id}/`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newStudent),
     })
       .then((response) => response.json())
-      .then((data) => {
+      .then((data: Student) => {
         setStudents((prev) => prev.map((student) => (student.id === data.id ? data : student)));
         setShowModal(false);
         setNewStudent({ name: "", guardian: "", contact: "" });
@@ -82,7 +99,7 @@ function Students() {
   };
 
   // Handle student deletion
-  const handleDeleteStudent = (id) => {
+  const handleDeleteStudent = (id: number) => {
     fetch(`http://localhost:8000/api/students/${id}/`, {
       method: "DELETE",
     })
@@ -156,7 +173,8 @@ function Students() {
               <Form.Control
                 type="text"
                 value={newStudent.name}
-                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                  setNewStudent({ ...newStudent, name: e.target.value })}
               />
             </Form.Group>
             <Form.Group controlId="guardian">
@@ -164,7 +182,8 @@ function Students() {
               <Form.Control
                 type="text"
                 value={newStudent.guardian}
-                onChange={(e) => setNewStudent({ ...newStudent, guardian: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                  setNewStudent({ ...newStudent, guardian: e.target.value })}
               />
             </Form.Group>
             <Form.Group controlId="contact">
@@ -172,7 +191,8 @@ function Students() {
               <Form.Control
                 type="text"
                 value={newStudent.contact}
-                onChange={(e) => setNewStudent({ ...newStudent, contact: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                  setNewStudent({ ...newStudent, contact: e.target.value })}
               />
             </Form.Group>
           </Form>
@@ -188,6 +208,6 @@ function Students() {
       </Modal>
     </Container>
   );
-}
+};
 
-export default Students;
+export default Students; 

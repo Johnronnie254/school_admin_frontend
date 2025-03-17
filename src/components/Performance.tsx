@@ -1,20 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Dropdown, Button, Container, Row, Col, Table, Navbar } from 'react-bootstrap';
 import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
 
 // Register necessary components for Chart.js
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const Performance = () => {
-  const [selectedGrade, setSelectedGrade] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
-  const [studentData, setStudentData] = useState([]);
-  const [chartData, setChartData] = useState(null);
-  const [loading, setLoading] = useState(false);
+interface StudentData {
+  name: string;
+  subjects: Record<string, number>;
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor: string;
+    fill: boolean;
+  }[];
+}
+
+interface CBCSubjects {
+  [key: string]: string[];
+}
+
+const Performance: React.FC = () => {
+  const [selectedGrade, setSelectedGrade] = useState<string>('');
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const [studentData, setStudentData] = useState<StudentData[]>([]);
+  const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Hardcoded CBC Subjects for each Grade
-  const cbcSubjects = {
+  const cbcSubjects: CBCSubjects = {
     "Playgroup": ["Creative Arts", "Motor Skills", "Physical Education", "Language Development", "Social Studies"],
     "PP1": ["Mathematics", "Kiswahili", "English", "Environmental Activities", "Physical Education"],
     "PP2": ["Mathematics", "Kiswahili", "English", "Science", "Social Studies"],
@@ -28,7 +56,7 @@ const Performance = () => {
   };
 
   // Handle grade selection
-  const handleGradeSelect = (grade) => {
+  const handleGradeSelect = (grade: string) => {
     setSelectedGrade(grade);
     setSelectedSubject(''); // Reset subject selection when grade changes
     setChartData(null); // Reset chart data
@@ -36,13 +64,13 @@ const Performance = () => {
   };
 
   // Handle subject selection
-  const handleSubjectSelect = (subject) => {
+  const handleSubjectSelect = (subject: string) => {
     setSelectedSubject(subject);
     fetchChartData(selectedGrade, subject); // Fetch performance chart data
   };
 
   // Fetch performance data based on selected grade
-  const fetchPerformanceData = async (grade) => {
+  const fetchPerformanceData = async (grade: string) => {
     setLoading(true);
     try {
       const response = await fetch(`/api/performance/${grade}`);
@@ -56,17 +84,17 @@ const Performance = () => {
   };
 
   // Fetch chart data for selected grade and subject
-  const fetchChartData = async (grade, subject) => {
+  const fetchChartData = async (grade: string, subject: string) => {
     setLoading(true);
     try {
       const response = await fetch(`/api/chart/${grade}/${subject}`);
       const data = await response.json();
-      const chartData = {
-        labels: data.terms, // e.g., ['Term 1', 'Term 2', 'Term 3']
+      const chartData: ChartData = {
+        labels: data.terms,
         datasets: [
           {
             label: `${subject} Performance`,
-            data: data.scores, // e.g., [80, 85, 90]
+            data: data.scores,
             borderColor: 'rgba(75,192,192,1)',
             fill: false,
           }
@@ -90,7 +118,7 @@ const Performance = () => {
         <thead>
           <tr>
             <th>Student Name</th>
-            {Object.keys(studentData[0]?.subjects || {}).map(subject => (
+            {studentData[0]?.subjects && Object.keys(studentData[0].subjects).map(subject => (
               <th key={subject}>{subject}</th>
             ))}
           </tr>
@@ -138,8 +166,8 @@ const Performance = () => {
           <Card>
             <Card.Header>Select Subject</Card.Header>
             <Card.Body>
-              <Dropdown disabled={!selectedGrade}>
-                <Dropdown.Toggle variant="success" id="dropdown-basic">
+              <Dropdown show={!selectedGrade ? false : undefined}>
+                <Dropdown.Toggle variant="success" id="dropdown-basic" disabled={!selectedGrade}>
                   {selectedSubject || 'Select Subject'}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
@@ -180,4 +208,4 @@ const Performance = () => {
   );
 };
 
-export default Performance;
+export default Performance; 

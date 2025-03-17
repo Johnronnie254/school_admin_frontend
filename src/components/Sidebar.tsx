@@ -2,7 +2,12 @@ import React from 'react';
 import { Nav, Button } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 
-function Sidebar({ setIsAuthenticated }) {
+
+interface SidebarProps {
+  setIsAuthenticated: (value: boolean) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -47,6 +52,6 @@ function Sidebar({ setIsAuthenticated }) {
       </div>
     </div>
   );
-}
+};
 
-export default Sidebar;
+export default Sidebar; 
