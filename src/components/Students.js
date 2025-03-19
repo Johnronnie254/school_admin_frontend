@@ -9,7 +9,7 @@ function Students() {
   const [newStudent, setNewStudent] = useState({ name: "", guardian: "", contact: "" });
   const [file, setFile] = useState(null);
 
-  // Fetch all students from the backend
+  // fetching all students
   useEffect(() => {
     fetch("http://localhost:8000/api/students/")
       .then((response) => response.json())
