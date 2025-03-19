@@ -1,16 +1,21 @@
 import React, { useState } from "react";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
-import { useNavigate } from "react-router-dom"; // Import for redirection
+import { useNavigate } from "react-router-dom";
 
-const SignupModal = ({ show, handleClose }) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const navigate = useNavigate(); // Hook for navigation
+interface SignupModalProps {
+  show: boolean;
+  handleClose: () => void;
+}
 
-  const handleSignup = async (e) => {
+const SignupModal: React.FC<SignupModalProps> = ({ show, handleClose }) => {
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -29,8 +34,8 @@ const SignupModal = ({ show, handleClose }) => {
       if (response.ok) {
         setSuccess("Registration successful! Redirecting to login...");
         setTimeout(() => {
-          handleClose(); // Close modal
-          navigate("/login"); // Redirect to login page
+          handleClose();
+          navigate("/login");
         }, 2000);
       } else {
         setError(data.message || "Signup failed. Please try again.");
@@ -54,7 +59,7 @@ const SignupModal = ({ show, handleClose }) => {
             <Form.Control
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               required
             />
           </Form.Group>
@@ -63,7 +68,7 @@ const SignupModal = ({ show, handleClose }) => {
             <Form.Control
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               required
             />
           </Form.Group>
@@ -72,7 +77,7 @@ const SignupModal = ({ show, handleClose }) => {
             <Form.Control
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               required
             />
           </Form.Group>
@@ -85,4 +90,4 @@ const SignupModal = ({ show, handleClose }) => {
   );
 };
 
-export default SignupModal;
+export default SignupModal; 
